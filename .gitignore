@@ -1,0 +1,13 @@
+/webapp/static/
+/Literature/
+/input/
+/flask_app/
+/.ipynb_checkpoints/
+/venv39/
+/Книга2.xlsx
+/result_df.csv
+/output.csv
+/output.log
+/logfile.log
+/fuzzy_test.py
+/config.py

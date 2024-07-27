@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block body%}
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Sequence Distributions</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link" aria-current="page" href="/">Home</a>
+        <a class="nav-link" href="results">Results</a>
+          <a class="nav-link active" href="sessions">Saved Sessions</a>
+        <a class="nav-link" href="contacts">Contacts</a>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="container">
+	<h1 class="my-4 text-center">Saved Sessions</h1>
+    <div class="container">
+        <div class="row">
+            {% for session in sessions %}
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header"><a href="experiment/{{session.sessionID}}">{{session.sessionID}}</a></div>
+                    <div class="card-body">
+                        {% for key, value in session.sequences.items() %}
+                            <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>
+                        {% endfor %}
+                        <p><strong>Limit:</strong> {{ session.parameters.limit }}</p>
+                        <p><strong>Threshold:</strong> {{ session.parameters.threshold }}</p>
+                        <p><strong>Smoothing:</strong> {{ session.parameters.smoothing }}</p>
+                        {% if session.imageURL %}
+                        <img src="{{session.imageURL}}" class="card-img-top" alt="...">
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}

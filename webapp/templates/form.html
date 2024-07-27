@@ -1,0 +1,58 @@
+<!--<div class="container">-->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Sequence Distributions</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link active" aria-current="page" href="/">Home</a>
+        <a class="nav-link" href="results">Results</a>
+          <a class="nav-link" href="sessions">Saved Sessions</a>
+        <a class="nav-link" href="contacts">Contacts</a>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="container mt-5">
+        <form method="POST" enctype="multipart/form-data" class="form">
+            {{ form.csrf_token }}
+
+            <div class="form-group">
+                <label for="barcode">Barcode</label>
+                {{ form.barcode(size=50, class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <label for="primer_left">Primer Left</label>
+                {{ form.primer_left(size=50, class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <label for="primer_right">Primer Right</label>
+                {{ form.primer_right(size=50, class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <label for="limit">Limit</label>
+                {{ form.limit(size=10, class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <label for="threshold">Threshold</label>
+                {{ form.threshold(size=10, class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <label for="filename">Select File</label>
+                {{ form.file(class="form-control-file") }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+<!--</div>-->
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+

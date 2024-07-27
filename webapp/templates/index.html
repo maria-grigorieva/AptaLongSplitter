@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block body%}
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Sequence Distributions</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link active" aria-current="page" href="/">Home</a>
+        <a class="nav-link" href="results">Results</a>
+        <a class="nav-link" href="sessions">Saved Sessions</a>
+        <a class="nav-link" href="contacts">Contacts</a>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="container mt-5">
+        <form method="POST" enctype="multipart/form-data" class="form">
+<!--            {{ form.csrf_token }}-->
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="session_name">Session Name</label>
+                {{ form.session_name(class="form-control-file") }}
+            </div>
+
+            <h2>Sequences to search:</h2>
+                {% for nested in form.items %}
+                <table id="items">
+                    <tr>
+                        <th>Type</th>
+                        <th>Sequence</th>
+                    </tr>
+                    <tr id="items-0">
+                    {% for field in nested  %}
+                        <td>{{ field(class="form-control") }}</td>
+                    {% endfor %}
+                 </tr>
+                </table>
+                {% endfor %}
+            <button id="add-new-field" type="button" class="btn btn-secondary btn-sm">Add sequence</button>
+            <div class="form-group">
+                <label for="limit">Limit</label>
+                {{ form.limit(size=10, class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <label for="threshold">Threshold</label>
+                {{ form.threshold(size=10, class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <label for="smoothing">Smoothing</label>
+                {{ form.smoothing(class="form-control-file") }}
+            </div>
+
+            <div class="form-group">
+                <label for="filename">Select File</label>
+                {{ form.file(class="form-control-file") }}
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+<script>
+    let formCount = 0;
+
+    document.getElementById('add-new-field').addEventListener('click', function() {
+        formCount++;
+        let newItem = document.createElement('tr');
+        newItem.innerHTML = `
+                <tr id="items-${formCount}-type">
+                    <td><input class="form-control" id="items-${formCount}-type" name="items-${formCount}-type" required type="text" value=""></td>
+                    <td><input class="form-control" id="items-${formCount}-sequence" name="items-${formCount}-sequence" required type="text" value=""></td>
+                </tr>
+        `;
+        document.getElementById('items').appendChild(newItem);
+    });
+</script>
+
+<!--</div>-->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+{% endblock %}
+
+
