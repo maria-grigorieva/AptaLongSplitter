@@ -10,18 +10,21 @@ def plot_distribution_proportions(sequences, smoothing):
         title = p['type']
         if 'value_counts' in p:
             df = pd.DataFrame(p['value_counts'])
-            total_proportion = np.round(np.sum([item['total_proportion'] for item in p['peaks']]),2) if len(p['peaks']) > 0 else 0
-
-            peaks_info = ""
-            for i,item in enumerate(p['peaks']):
-                idx = item['peak_index']
-                proportion = item['total_proportion']
-                peaks_info += f'{idx}({proportion})  '
+            #total_proportion = np.round(np.sum([item['total_proportion'] for item in p['peaks']]),2) if len(p['peaks']) > 0 else 0
+            total_proportion = p['total_proportion']
+            total_reads = p['total_reads']
+            noise = p['noise_level']
+            #
+            # peaks_info = ""
+            # for i,item in enumerate(p['peaks']):
+            #     idx = item['peak_index']
+            #     proportion = item['total_proportion']
+            #     peaks_info += f'{idx}({proportion})  '
             fig.add_trace(go.Scatter(
                 x=df['index'],
                 y=df['proportion'],
                 mode='lines',
-                name=f'{title}: Total Proportion = {total_proportion}, PEAKS: {peaks_info}',
+                name=f'{title}: Total Proportion = {total_proportion}, number of reads = {total_reads}, level of noise = {noise}',
                 )
             )
             if len(sequences) == 1:

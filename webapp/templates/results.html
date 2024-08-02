@@ -17,40 +17,108 @@
     </div>
   </div>
 </nav>
-<div class="container">
+<div class="container mt-5">
 	<h1 class="my-4 text-center">Sequence Occurrences</h1>
 <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-6 mb-3 mb-sm-0">
+        <div class="card">
+          <div class="card-header">
+              <h3 class="card-title">Input Data</h3>
+          </div>
+          <div class="card-body ps-2">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Session Name:</strong> {{ data['session_name'] }}</li>
+{#                {% for key, value in data['sequences'].items() %}#}
+{#                    <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>#}
+{#                {% endfor %}#}
+                <li class="list-group-item"><strong>Limit:</strong> {{ data['parameters']['limit'] }}</li>
+                <li class="list-group-item"><strong>Threshold:</strong> {{ data['parameters']['threshold'] }}</li>
+                <li class="list-group-item"><strong>Smoothing:</strong> {{ data['parameters']['smoothing'] }}</li>
+                <li class="list-group-item"><strong>Filename:</strong> {{ data['parameters']['filename'] }}</li>
+                <li class="list-group-item"><strong>Number of sequences:</strong> {{ fastq_parameters['n_records'] }}</li>
+                <li class="list-group-item"><strong>Average level of noise:</strong> {{ fastq_parameters['avg_noise_level'] }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Input Data</h3>
+                <h3 class="card-title">Searched Sequences</h3>
             </div>
-            <div class="card-body ps-2">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><strong>Session Name:</strong> {{ data['session_name'] }}</li>
-                    {% for key, value in data['sequences'].items() %}
-                        <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>
-                    {% endfor %}
-                    <li class="list-group-item"><strong>Limit:</strong> {{ data['parameters']['limit'] }}</li>
-                    <li class="list-group-item"><strong>Threshold:</strong> {{ data['parameters']['threshold'] }}</li>
-                    <li class="list-group-item"><strong>Smoothing:</strong> {{ data['parameters']['smoothing'] }}</li>
-                    <li class="list-group-item"><strong>Filename:</strong> {{ data['parameters']['filename'] }}</li>
-                </ul>
-            </div>
+          <div class="card-body ps-2">
+{#              {% for key, value in data['sequences'].items() %}#}
+{#                        <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>#}
+{#              {% endfor %}#}
+              {% for s in sequences %}
+                        <li class="list-group-item"><strong>{{ s['type'] }}:</strong> {{ s['sequence'] }}, total occurrences = {{ s['total_reads'] }},
+                        proportion = {{ s['total_proportion'] }}, noise level = {{ s['noise_level'] }}</li>
+              {% endfor %}
+          </div>
         </div>
+      </div>
+    </div>
+{#        <div class="card">#}
+{#            <div class="card-header">#}
+{#                <h3 class="card-title">Input Data</h3>#}
+{#            </div>#}
+{#            <div class="card-body ps-2">#}
+{#                <ul class="list-group list-group-flush">#}
+{#                    <li class="list-group-item"><strong>Session Name:</strong> {{ data['session_name'] }}</li>#}
+{#                    {% for key, value in data['sequences'].items() %}#}
+{#                        <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>#}
+{#                    {% endfor %}#}
+{#                    <li class="list-group-item"><strong>Limit:</strong> {{ data['parameters']['limit'] }}</li>#}
+{#                    <li class="list-group-item"><strong>Threshold:</strong> {{ data['parameters']['threshold'] }}</li>#}
+{#                    <li class="list-group-item"><strong>Smoothing:</strong> {{ data['parameters']['smoothing'] }}</li>#}
+{#                    <li class="list-group-item"><strong>Filename:</strong> {{ data['parameters']['filename'] }}</li>#}
+{#                    <li class="list-group-item"><strong>Number of sequences:</strong> {{ fastq_parameters['n_records'] }}</li>#}
+{#                    <li class="list-group-item"><strong>Average level of noise:</strong> {{ fastq_parameters['avg_noise_level'] }}</li>#}
+{#                </ul>#}
+{#            </div>#}
+{#        </div>#}
     </div>
 
     <div id='chart1' class='chart'”></div>
 <!--    <div id='chart2' class='chart'”></div>-->
     <h2>Peaks Statistics</h2>
     <div id='chart3' class='chart'”></div>
+    <div id='stats_tables' class="table">
+        {% for seq in sequences %}
+        <div class="table-responsive">
+            <h4>{{ seq['type'] }}</h4>
+          <table class="table table-hover table-sm">
+                    <tr>
+                    <th>Peak Index</th>
+                    <th>Left Bases</th>
+                    <th>Right Bases</th>
+                    <th>Total Proportion</th>
+                    <th>Total Reads</th>
+                    <th>Peak Distance</th>
+                    </tr>
+                {% for row in seq['peaks'] %}
+                    <tr>
+                        <td>{{ row['peak_index'] }}</td>
+                        <td>{{ row['left_bases'] }}</td>
+                        <td>{{ row['right_bases'] }}</td>
+                        <td>{{ row['total_proportion'] }}</td>
+                        <td>{{ row['total_reads'] }}</td>
+                        <td>{{ row['peak_dist'] }}</td>
+                    </tr>
+                {% endfor %}
+          </table>
+        </div>
+        {% endfor %}
+    </div>
 </div>
         <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
         <script type='text/javascript'>
           var graph1 = {{plots['hist1'] | safe}};
-          var graph3 = {{plots['peaks'] | safe}};
+          {#var graph3 = {{plots['peaks'] | safe}};#}
           // var graph2 = {{plots['hist2'] | safe}};
           Plotly.plot('chart1',graph1,{});
           // Plotly.plot('chart2',graph2,{});
-          Plotly.plot('chart3',graph3,{});
+          {#Plotly.plot('chart3',graph3,{});#}
         </script>
 {% endblock %}

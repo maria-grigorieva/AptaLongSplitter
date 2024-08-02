@@ -40,7 +40,7 @@ class InputForm(FlaskForm):
     limit = IntegerField('Limit', default=500)
     threshold = FloatField('Threshold', validators=[DataRequired()], default=0.75)
     smoothing = SelectField('Smoothing',
-                choices=[('None','None'),('LOWESS','lowess'),('Whittaker Smoother', 'whittaker'),('savgol','savgol')])
+                choices=[('None','None'),('LOWESS','lowess'),('Whittaker Smoother', 'whittaker'),('savgol','savgol'),('confsmooth','confsmooth')])
     file = FileField('fastq_file', validators=[FileRequired()])
     submit = SubmitField('Submit')
 
@@ -160,13 +160,9 @@ def experiment(sessionID):
     session['input_data'] = data
     return redirect(url_for('results'))
 
-def plotlyfromjson(json_plot):
-    # """Render a plotly figure from a json file"""
-    # with open(fpath, 'r') as f:
-    #     v = json.load(f)
-
-    fig = go.Figure(data=json_plot['data'], layout=json_plot['layout'])
-    return fig
+# def plotlyfromjson(json_plot):
+#     fig = go.Figure(data=json_plot['data'], layout=json_plot['layout'])
+#     return fig
 
 
 @app.route('/results')
@@ -175,30 +171,54 @@ def results():
         data = session['input_data']
         if os.path.exists(os.path.join(data['parameters']['new_dir'], 'sequences.json')):
             with open(os.path.join(data['parameters']['new_dir'], 'sequences.json'), 'r') as f1:
-                sequences = json.load(f1)
+                output_data = json.load(f1)
 
-                fig1 = visualization.plot_distribution_proportions(sequences, data['parameters']['smoothing'])
+                fig1 = visualization.plot_distribution_proportions(output_data['sequences'], data['parameters']['smoothing'])
                 distrJSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
+                #
+                # peaks_table = visualization.make_peaks_subplots(sequences)
+                # peaksJSON = json.dumps(peaks_table, cls=plotly.utils.PlotlyJSONEncoder)
+                sequences = [{'type': seq['type'],
+                              'sequence': seq['sequence'],
+                              'peaks': seq['peaks'],
+                              'noise_level': seq['noise_level'],
+                              'total_reads': seq['total_reads'],
+                              'total_proportion': seq['total_proportion']
+                              } for seq in output_data['sequences']]
+                fastq_parameters = {'n_records': output_data['parameters']['n_records'],
+                                    'avg_noise_level': output_data['parameters']['avg_noise_level']}
 
-                peaks_table = visualization.make_peaks_subplots(sequences)
-                peaksJSON = json.dumps(peaks_table, cls=plotly.utils.PlotlyJSONEncoder)
-                return render_template('results.html', plots={'hist1': distrJSON, 'peaks': peaksJSON}, data=data)
+                return render_template('results.html',
+                                       plots={'hist1': distrJSON},
+                                       data=data,
+                                       sequences=sequences,
+                                       fastq_parameters=fastq_parameters)
         else:
-            sequences = sequence_distribution.main(data['parameters']['new_dir'])
+            output_data = sequence_distribution.main(data['parameters']['new_dir'])
             with open(os.path.join(data['parameters']['new_dir'],'sequences.json'), 'w') as f:
-                json.dump(sequences, f, default=str)
+                json.dump(output_data, f, default=str)
 
-            fig1 = visualization.plot_distribution_proportions(sequences, data['parameters']['smoothing'])
+            fig1 = visualization.plot_distribution_proportions(output_data['sequences'], data['parameters']['smoothing'])
             distrJSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
-
-            peaks_table = visualization.make_peaks_subplots(sequences)
-            peaksJSON = json.dumps(peaks_table, cls=plotly.utils.PlotlyJSONEncoder)
 
             with open(os.path.join(data['parameters']['new_dir'],'distribution.png'), "wb") as distribution_file:
                 fig1.write_image(distribution_file)
 
-            plots = {'hist1': distrJSON, 'peaks': peaksJSON}
-            return render_template('results.html', plots=plots, data=data)
+            plots = {'hist1': distrJSON}
+            sequences = [{'type': seq['type'],
+                          'sequence': seq['sequence'],
+                          'peaks': seq['peaks'],
+                          'noise_level': seq['noise_level'],
+                          'total_reads': seq['total_reads'],
+                          'total_proportion': seq['total_proportion']
+                          } for seq in output_data['sequences']]
+            fastq_parameters = {'n_records': output_data['parameters']['n_records'],
+                                'avg_noise_level': output_data['parameters']['avg_noise_level']}
+            return render_template('results.html',
+                                   plots=plots,
+                                   data=data,
+                                   sequences=sequences,
+                                   fastq_parameters=fastq_parameters)
     else:
         return render_template('no_results.html')
 
