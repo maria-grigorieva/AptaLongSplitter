@@ -60,6 +60,11 @@ def calculate_snr(arr, window_size=3):
     snr = 10 * np.log10(signal_power / noise_power)
     return snr
 
+def signaltonoise(a, axis=0, ddof=0):
+    a = np.asanyarray(a)
+    m = a.mean(axis)
+    sd = a.std(axis=axis, ddof=ddof)
+    return np.where(sd == 0, 0, m/sd)
 
 def noise_level(data, reference):
     return variation(data['reads'], axis=0)
@@ -171,7 +176,8 @@ def main(SESSION):
 
     for p in SEQUENCES:
         p['occurences'] = get_all_occurrences(p['sequence'], p['type'], sequences, n_records, avg_length, THRESHOLD)
-        p['noise_level'] = calculate_snr(p['occurences']['reads'], round(len(p['sequence'])/2))
+        #p['noise_level'] = calculate_snr(p['occurences']['reads'], round(len(p['sequence'])/2))
+        p['noise_level'] = signaltonoise(p['occurences']['reads'])
         # p['noise_level'] = noise_level(p['occurences'], p['sequence'])
         p['total_reads'] = np.sum(p['occurences']['reads'])
         p['total_proportion'] = np.sum(p['occurences']['proportion'])
