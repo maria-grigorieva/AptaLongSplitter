@@ -17,44 +17,96 @@
     </div>
   </div>
 </nav>
-<div class="container mt-5">
-	<h1 class="my-4 text-center">Sequence Occurrences</h1>
+<div class="container mt-5 small">
+	<h4 class="my-4 text-center">Sequence Occurrences</h4>
 <div class="container mt-5">
     <div class="row">
-      <div class="col-sm-6 mb-3 mb-sm-0">
+      <div class="col-sm-4 mb-3 mb-sm-0">
         <div class="card">
           <div class="card-header">
-              <h3 class="card-title">Input Data</h3>
+              <h4 class="card-title">Input Data</h4>
           </div>
           <div class="card-body ps-2">
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item"><strong>Session Name:</strong> {{ data['session_name'] }}</li>
-{#                {% for key, value in data['sequences'].items() %}#}
-{#                    <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>#}
-{#                {% endfor %}#}
-                <li class="list-group-item"><strong>Limit:</strong> {{ data['parameters']['limit'] }}</li>
-                <li class="list-group-item"><strong>Threshold:</strong> {{ data['parameters']['threshold'] }}</li>
-                <li class="list-group-item"><strong>Smoothing:</strong> {{ data['parameters']['smoothing'] }}</li>
-                <li class="list-group-item"><strong>Filename:</strong> {{ data['parameters']['filename'] }}</li>
-                <li class="list-group-item"><strong>Number of sequences:</strong> {{ fastq_parameters['n_records'] }}</li>
-                <li class="list-group-item"><strong>Average level of noise:</strong> {{ fastq_parameters['avg_noise_level'] }}</li>
-            </ul>
+                      <table class="table table-hover table-sm small">
+            <tbody>
+                <tr>
+                    <th>Session Name</th>
+                    <td>{{ data['session_name'] }}</td>
+                </tr>
+                <tr>
+                    <th>Limit</th>
+                    <td>{{ data['parameters']['limit'] }}</td>
+                </tr>
+                <tr>
+                    <th>Threshold</th>
+                    <td>{{ data['parameters']['threshold'] }}</td>
+                </tr>
+                <tr>
+                    <th>Smoothing</th>
+                    <td>{{ data['parameters']['smoothing'] }}</td>
+                </tr>
+                <tr>
+                    <th>Filename</th>
+                    <td>{{ data['parameters']['filename'] }}</td>
+                </tr>
+                <tr>
+                    <th>Number of Sequences</th>
+                    <td>{{ fastq_parameters['n_records'] }}</td>
+                </tr>
+                <tr>
+                    <th>Average Level of Noise</th>
+                    <td>{{ fastq_parameters['avg_noise_level'] }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+{#            <ul class="list-group list-group-flush">#}
+{#                <li class="list-group-item"><strong>Session Name:</strong> {{ data['session_name'] }}</li>#}
+{#                <li class="list-group-item"><strong>Limit:</strong> {{ data['parameters']['limit'] }}</li>#}
+{#                <li class="list-group-item"><strong>Threshold:</strong> {{ data['parameters']['threshold'] }}</li>#}
+{#                <li class="list-group-item"><strong>Smoothing:</strong> {{ data['parameters']['smoothing'] }}</li>#}
+{#                <li class="list-group-item"><strong>Filename:</strong> {{ data['parameters']['filename'] }}</li>#}
+{#                <li class="list-group-item"><strong>Number of sequences:</strong> {{ fastq_parameters['n_records'] }}</li>#}
+{#                <li class="list-group-item"><strong>Average level of noise:</strong> {{ fastq_parameters['avg_noise_level'] }}</li>#}
+{#            </ul>#}
           </div>
         </div>
       </div>
-      <div class="col-sm-6">
+      <div class="col">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Searched Sequences</h3>
+                <h4 class="card-title">Searched Sequences</h4>
             </div>
           <div class="card-body ps-2">
-{#              {% for key, value in data['sequences'].items() %}#}
-{#                        <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>#}
+              <table class="table table-hover table-sm small">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Sequence</th>
+                      <th>Total Occurrences</th>
+                      <th>Proportion</th>
+                      <th>Noise Level</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for s in sequences %}
+                    <tr>
+                      <td><strong>{{ s['type'] }}</strong></td>
+                      <td>{{ s['sequence'] }}</td>
+                      <td>{{ s['total_reads'] }}</td>
+                      <td>{{ s['total_proportion'] }}</td>
+                      <td>{{ s['noise_level'] }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+
+{#            <ul class="list-group list-group-flush">#}
+{#              {% for s in sequences %}#}
+{#                        <li class="list-group-item"><strong>{{ s['type'] }}:</strong> {{ s['sequence'] }}, total occurrences = {{ s['total_reads'] }},#}
+{#                        proportion = {{ s['total_proportion'] }}, noise level = {{ s['noise_level'] }}</li>#}
 {#              {% endfor %}#}
-              {% for s in sequences %}
-                        <li class="list-group-item"><strong>{{ s['type'] }}:</strong> {{ s['sequence'] }}, total occurrences = {{ s['total_reads'] }},
-                        proportion = {{ s['total_proportion'] }}, noise level = {{ s['noise_level'] }}</li>
-              {% endfor %}
+{#            </ul>#}
           </div>
         </div>
       </div>
@@ -80,25 +132,38 @@
 {#        </div>#}
     </div>
 
-    <div id='chart1' class='chart'”></div>
+    <div id='chart1' class='chart'>
+{#        {{plots['hist1'] | safe}}#}
+    </div>
 <!--    <div id='chart2' class='chart'”></div>-->
-    <h2>Peaks Statistics</h2>
+    <h4>Peaks Statistics</h4>
     <div id='chart3' class='chart'”></div>
-    <div id='stats_tables' class="table">
-        {% for seq in sequences %}
-        <div class="table-responsive">
-            <h4>{{ seq['type'] }}</h4>
-          <table class="table table-hover table-sm">
-                    <tr>
-                    <th>Peak Index</th>
-                    <th>Left Bases</th>
-                    <th>Right Bases</th>
-                    <th>Total Proportion</th>
-                    <th>Total Reads</th>
-                    <th>Peak Distance</th>
-                    </tr>
+
+<div id='stats_tables'>
+ <div class="container">
+       <div class="row">
+           <div class="col-md-6">
+                <table class="table table-hover table-sm small">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Peak Index</th>
+                <th>Left Bases</th>
+                <th>Right Bases</th>
+                <th>Total Proportion</th>
+                <th>Total Reads</th>
+                <th>Peak Distance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for seq in sequences %}
                 {% for row in seq['peaks'] %}
                     <tr>
+                        {% if loop.first %}
+                            <td rowspan="{{ loop.length }}">
+                                <strong>{{ seq['type'] }}</strong>
+                            </td>
+                        {% endif %}
                         <td>{{ row['peak_index'] }}</td>
                         <td>{{ row['left_bases'] }}</td>
                         <td>{{ row['right_bases'] }}</td>
@@ -107,18 +172,72 @@
                         <td>{{ row['peak_dist'] }}</td>
                     </tr>
                 {% endfor %}
-          </table>
-        </div>
-        {% endfor %}
-    </div>
+            {% endfor %}
+        </tbody>
+    </table>
+           </div>
+            <div class="col-md-4" id="selection"/>
+       </div>
+
+   </div>
+</div>
+
 </div>
         <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
         <script type='text/javascript'>
           var graph1 = {{plots['hist1'] | safe}};
-          {#var graph3 = {{plots['peaks'] | safe}};#}
-          // var graph2 = {{plots['hist2'] | safe}};
+          var graphDiv = document.getElementById('chart1');
+          var sequences = {{ sequences | safe }};
           Plotly.plot('chart1',graph1,{});
-          // Plotly.plot('chart2',graph2,{});
-          {#Plotly.plot('chart3',graph3,{});#}
+
+          graphDiv.on('plotly_relayout',
+                function(eventdata){
+                    start_index = Math.round(eventdata['xaxis.range[0]']);
+                    end_index = Math.round(eventdata['xaxis.range[1]']);
+                    var results = [];
+
+                    sequences.forEach(function(item) {
+                        var sumReads = 0;
+                        var sumProportion = 0;
+
+                        item.value_counts.forEach(function(entry) {
+                            if (entry.index >= start_index && entry.index <= end_index) {
+                                sumReads += entry.reads;
+                                sumProportion += entry.proportion;
+                            }
+                        });
+
+                        results.push({
+                            "type": item.type,
+                            "sequence": item.sequence,
+                            "reads": sumReads,
+                            "proportion": sumProportion.toFixed(4)
+                        });
+                    });
+                    var title = 'Selection: ' + start_index + '-' + end_index;
+                    var tableContent = '<h4>'+title+'</h4><table border="1" class="table table-hover table-sm small">';
+                    tableContent += '<tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>';
+
+                      results.forEach(function(item) {
+                        tableContent += '<tr><td>' + item.type + '</td><td>' + item.reads + '</td><td>' + item.proportion + '</td></tr>';
+                      });
+
+                      tableContent += '</table>';
+
+                    var div = document.getElementById('selection');
+                    div.innerHTML = tableContent;
+                    {##}
+                    {#alert( 'Summary for the selection' + '\n\n' +#}
+                    {#    'Event data:' + '\n' +#}
+                    {#     JSON.stringify(eventdata) + '\n\n' +#}
+                    {#    'x-axis start:' + start_index + '\n' +#}
+                    {#    'x-axis end:' + end_index + '\n' +#}
+                    {#    JSON.stringify(results)#}
+                    {#);#}
+                }
+          );
+
         </script>
+
+
 {% endblock %}

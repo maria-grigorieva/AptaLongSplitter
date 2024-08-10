@@ -36,7 +36,7 @@ def get_all_occurrences(reference, type, all_sequences, n_records, avg_length, t
             pass
         # occurrences.extend(current_occurrences if len(current_occurrences) > 0 else [-1])
     unique_values, counts = np.unique(sorted(occurrences), return_counts=True)
-    data = [{'index': value, 'reads': count, 'proportion': count / n_records} for value, count in zip(unique_values, counts)]
+    data = [{'index': value, 'reads': count, 'proportion': round(count / n_records,4)} for value, count in zip(unique_values, counts)]
     df = pd.DataFrame(data)
     all_indexes = pd.Series(range(0, avg_length))
     result = all_indexes.to_frame('index').merge(df, on='index', how='left').fillna(0)
@@ -119,18 +119,18 @@ def get_peak_occurrences(x, smoothing):
     x['peaks'] = extremums if len(extremums) > 0 else []
     x['average_peaks_distance'] = calculate_average_peaks_distance(x['peaks'])
     x['value_counts'] = x['occurences'].to_dict('records') if x['occurences'].shape[0] > 0 else []
-    x['value_counts_abs'] = x['occurences'].to_dict('records') if x['occurences'].shape[0] > 0 else []
+    # x['value_counts_abs'] = x['occurences'].to_dict('records') if x['occurences'].shape[0] > 0 else []
 
 def aggregate_peak_values(step, df, peak_index, bases):
     left_bases = bases['left_bases'][step]
     right_bases = bases['right_bases'][step]
     total_proportion = np.round(np.sum(df.iloc[left_bases:right_bases]['proportion'].values), 4)
     total_occurrences = np.round(np.sum(df.iloc[left_bases:right_bases]['reads'].values), 4)
-    return {'peak_index': peak_index,
-          'left_bases': left_bases,
-          'right_bases': right_bases,
-          'total_proportion': total_proportion,
-          'total_reads': total_occurrences}
+    return {'peak_index': int(peak_index),
+          'left_bases': int(left_bases),
+          'right_bases': int(right_bases),
+          'total_proportion': float(total_proportion),
+          'total_reads': int(total_occurrences)}
 
 def calculate_average_peaks_distance(peaks):
     indexes = [p['peak_index'] for p in peaks]
@@ -177,10 +177,10 @@ def main(SESSION):
     for p in SEQUENCES:
         p['occurences'] = get_all_occurrences(p['sequence'], p['type'], sequences, n_records, avg_length, THRESHOLD)
         #p['noise_level'] = calculate_snr(p['occurences']['reads'], round(len(p['sequence'])/2))
-        p['noise_level'] = signaltonoise(p['occurences']['reads'])
+        p['noise_level'] = float(np.round(signaltonoise(p['occurences']['reads']),4))
         # p['noise_level'] = noise_level(p['occurences'], p['sequence'])
-        p['total_reads'] = np.sum(p['occurences']['reads'])
-        p['total_proportion'] = np.sum(p['occurences']['proportion'])
+        p['total_reads'] = int(np.sum(p['occurences']['reads']))
+        p['total_proportion'] = float(np.round(np.sum(p['occurences']['proportion']),4))
         get_peak_occurrences(p, smoothing=SMOOTHING)
 
     result_data['sequences'] = SEQUENCES
@@ -189,7 +189,7 @@ def main(SESSION):
                                  'limit': LIMIT,
                                  'threshold': THRESHOLD,
                                  'file_path': FILE_PATH,
-                                 'avg_noise_level': np.mean([item['noise_level'] for item in SEQUENCES])
+                                 'avg_noise_level': np.round(np.mean([item['noise_level'] for item in SEQUENCES]),4)
                                  }
 
     return result_data

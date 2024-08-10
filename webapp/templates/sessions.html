@@ -17,24 +17,28 @@
     </div>
   </div>
 </nav>
-<div class="container">
+<div class="container small">
 	<h1 class="my-4 text-center">Saved Sessions</h1>
     <div class="container">
-        <div class="row">
+        <div class="row row-cols-3">
             {% for session in sessions %}
-            <div class="col-6">
+            <div class="col">
                 <div class="card">
-                    <div class="card-header"><a href="experiment/{{session.sessionID}}">{{session.sessionID}}</a></div>
+                    <div class="card-header">{{session.sessionID}}</div>
                     <div class="card-body">
                         {% for key, value in session.sequences.items() %}
                             <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>
                         {% endfor %}
-                        <p><strong>Limit:</strong> {{ session.parameters.limit }}</p>
-                        <p><strong>Threshold:</strong> {{ session.parameters.threshold }}</p>
-                        <p><strong>Smoothing:</strong> {{ session.parameters.smoothing }}</p>
+                            <li class="list-group-item"><strong>Limit:</strong> {{ session.parameters.limit }}</li>
+                            <li class="list-group-item"><strong>Threshold:</strong> {{ session.parameters.threshold }}</li>
+                            <li class="list-group-item"><strong>Smoothing:</strong> {{ session.parameters.smoothing }}</li>
                         {% if session.imageURL %}
                         <img src="{{session.imageURL}}" class="card-img-top" alt="...">
                     {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent border-success">
+                        <a href="experiment/{{session.sessionID}}" type="button" class="btn btn-primary btn-sm">Open</a>
+                        <a href="delete/{{session.sessionID}}" type="button" class="btn btn-secondary btn-sm">Delete</a>
                     </div>
                 </div>
             </div>

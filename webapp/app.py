@@ -16,6 +16,7 @@ import plotly
 import plotly.graph_objects as go
 from numpyencoder import NumpyEncoder
 from plotly.offline import iplot
+import shutil
 
 
 app = Flask(__name__)
@@ -37,8 +38,8 @@ class SequenceItem(Form):
 class InputForm(FlaskForm):
     session_name = StringField('Session Name', validators=[DataRequired()])
     items = FieldList(FormField(SequenceItem), min_entries=1, max_entries=10)
-    limit = IntegerField('Limit', default=500)
-    threshold = FloatField('Threshold', validators=[DataRequired()], default=0.75)
+    limit = IntegerField('Limit', default=0)
+    threshold = FloatField('Threshold', validators=[DataRequired()], default=0.9)
     smoothing = SelectField('Smoothing',
                 choices=[('None','None'),('LOWESS','lowess'),('Whittaker Smoother', 'whittaker'),('savgol','savgol'),('confsmooth','confsmooth')])
     file = FileField('fastq_file', validators=[FileRequired()])
@@ -160,9 +161,17 @@ def experiment(sessionID):
     session['input_data'] = data
     return redirect(url_for('results'))
 
-# def plotlyfromjson(json_plot):
-#     fig = go.Figure(data=json_plot['data'], layout=json_plot['layout'])
-#     return fig
+@app.route('/delete/<sessionID>')
+def delete(sessionID):
+    base_directory = app.config['UPLOAD_FOLDER']
+    directory_path = os.path.join(base_directory, sessionID)
+    try:
+        shutil.rmtree(directory_path)
+        print(f"Directory '{directory_path}' and all its contents have been successfully removed.")
+    except Exception as e:
+        print(f"An error occurred while removing '{directory_path}': {e}")
+    session['input_data'] = None
+    return redirect(url_for('sessions'))
 
 
 @app.route('/results')
@@ -175,15 +184,13 @@ def results():
 
                 fig1 = visualization.plot_distribution_proportions(output_data['sequences'], data['parameters']['smoothing'])
                 distrJSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
-                #
-                # peaks_table = visualization.make_peaks_subplots(sequences)
-                # peaksJSON = json.dumps(peaks_table, cls=plotly.utils.PlotlyJSONEncoder)
                 sequences = [{'type': seq['type'],
                               'sequence': seq['sequence'],
                               'peaks': seq['peaks'],
                               'noise_level': seq['noise_level'],
                               'total_reads': seq['total_reads'],
-                              'total_proportion': seq['total_proportion']
+                              'total_proportion': seq['total_proportion'],
+                              'value_counts': seq['value_counts']
                               } for seq in output_data['sequences']]
                 fastq_parameters = {'n_records': output_data['parameters']['n_records'],
                                     'avg_noise_level': output_data['parameters']['avg_noise_level']}
@@ -210,7 +217,8 @@ def results():
                           'peaks': seq['peaks'],
                           'noise_level': seq['noise_level'],
                           'total_reads': seq['total_reads'],
-                          'total_proportion': seq['total_proportion']
+                          'total_proportion': seq['total_proportion'],
+                          'value_counts': seq['value_counts']
                           } for seq in output_data['sequences']]
             fastq_parameters = {'n_records': output_data['parameters']['n_records'],
                                 'avg_noise_level': output_data['parameters']['avg_noise_level']}
