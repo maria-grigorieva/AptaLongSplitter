@@ -26,7 +26,7 @@
           <div class="card-header">
               <h4 class="card-title">Input Data</h4>
           </div>
-          <div class="card-body ps-2">
+          <div class="card-body ps-2 text-truncate">
                       <table class="table table-hover table-sm small">
             <tbody>
                 <tr>
@@ -77,8 +77,8 @@
             <div class="card-header">
                 <h4 class="card-title">Searched Sequences</h4>
             </div>
-          <div class="card-body ps-2">
-              <table class="table table-hover table-sm small">
+          <div class="card-body ps-2 text-truncate">
+              <table id="searched_sequences" class="table table-hover table-sm small">
                   <thead>
                     <tr>
                       <th>Type</th>
@@ -143,40 +143,86 @@
  <div class="container">
        <div class="row">
            <div class="col-md-6">
-                <table class="table table-hover table-sm small">
-        <thead>
-            <tr>
-                <th>Type</th>
-                <th>Peak Index</th>
-                <th>Left Bases</th>
-                <th>Right Bases</th>
-                <th>Total Proportion</th>
-                <th>Total Reads</th>
-                <th>Peak Distance</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for seq in sequences %}
-                {% for row in seq['peaks'] %}
-                    <tr>
-                        {% if loop.first %}
-                            <td rowspan="{{ loop.length }}">
-                                <strong>{{ seq['type'] }}</strong>
-                            </td>
-                        {% endif %}
-                        <td>{{ row['peak_index'] }}</td>
-                        <td>{{ row['left_bases'] }}</td>
-                        <td>{{ row['right_bases'] }}</td>
-                        <td>{{ row['total_proportion'] }}</td>
-                        <td>{{ row['total_reads'] }}</td>
-                        <td>{{ row['peak_dist'] }}</td>
-                    </tr>
-                {% endfor %}
+               <table id="peaks_statistics" class="table table-hover table-sm small">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Peak Index</th>
+            <th>Left Bases</th>
+            <th>Right Bases</th>
+            <th>Total Proportion</th>
+            <th>Total Reads</th>
+            <th>Peak Distance</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for seq in sequences %}
+            {% for row in seq['peaks'] %}
+                <tr>
+                    <td><strong>{{ seq['type'] }}</strong></td>
+                    <td>{{ row['peak_index'] }}</td>
+                    <td>{{ row['left_bases'] }}</td>
+                    <td>{{ row['right_bases'] }}</td>
+                    <td>{{ row['total_proportion'] }}</td>
+                    <td>{{ row['total_reads'] }}</td>
+                    <td>{{ row['peak_dist'] }}</td>
+{#                    {% if loop.first %}#}
+{#                        <td rowspan="{{ loop.length }}">#}
+{#                            <strong>{{ seq['type'] }}</strong>#}
+{#                        </td>#}
+{#                    {% endif %}#}
+                </tr>
             {% endfor %}
-        </tbody>
-    </table>
+        {% endfor %}
+    </tbody>
+</table>
+
+{#       <table id="peaks_statistics" class="table table-hover table-sm small">#}
+{#        <thead>#}
+{#            <tr>#}
+{#                <th>Type</th>#}
+{#                <th>Peak Index</th>#}
+{#                <th>Left Bases</th>#}
+{#                <th>Right Bases</th>#}
+{#                <th>Total Proportion</th>#}
+{#                <th>Total Reads</th>#}
+{#                <th>Peak Distance</th>#}
+{#            </tr>#}
+{#        </thead>#}
+{#        <tbody>#}
+{#            {% for seq in sequences %}#}
+{#                {% for row in seq['peaks'] %}#}
+{#                    <tr>#}
+{#                        {% if loop.first %}#}
+{#                            <td rowspan="{{ loop.length }}">#}
+{#                                <strong>{{ seq['type'] }}</strong>#}
+{#                            </td>#}
+{#                        {% endif %}#}
+{#                        <td>{{ row['peak_index'] }}</td>#}
+{#                        <td>{{ row['left_bases'] }}</td>#}
+{#                        <td>{{ row['right_bases'] }}</td>#}
+{#                        <td>{{ row['total_proportion'] }}</td>#}
+{#                        <td>{{ row['total_reads'] }}</td>#}
+{#                        <td>{{ row['peak_dist'] }}</td>#}
+{#                    </tr>#}
+{#                {% endfor %}#}
+{#            {% endfor %}#}
+{#        </tbody>#}
+{#    </table>#}
            </div>
-            <div class="col-md-4" id="selection"/>
+            <div class="col-md-4" id="selection">
+                <h4 id="header_selection">Selection</h4>
+                <table border="1" id="table_selection" class="table table-hover table-sm small">
+                    <thead>
+                    <tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for seq in sequences %}
+                            <tr><td>{{ seq['type'] }}</td><td>0</td><td>0</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
        </div>
 
    </div>
@@ -215,17 +261,29 @@
                         });
                     });
                     var title = 'Selection: ' + start_index + '-' + end_index;
-                    var tableContent = '<h4>'+title+'</h4><table border="1" class="table table-hover table-sm small">';
-                    tableContent += '<tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>';
+                    var header = document.getElementById('header_selection');
+                    header.textContent = title;
+                    var table = document.getElementById('table_selection');
+                    let tbody = table.getElementsByTagName("tbody")[0];
+                    var tableContent = '';
+                    {##}
+                    {#var tableContent = '<h4>'+title+'</h4><table border="1" id="table_selection" class="table table-hover table-sm small">';#}
+                    {#tableContent += '<tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>';#}
 
                       results.forEach(function(item) {
                         tableContent += '<tr><td>' + item.type + '</td><td>' + item.reads + '</td><td>' + item.proportion + '</td></tr>';
                       });
 
-                      tableContent += '</table>';
+                      {#tableContent += '</table>';#}
+                    tbody.innerHTML = tableContent;
 
-                    var div = document.getElementById('selection');
-                    div.innerHTML = tableContent;
+                    $('#table_selection').columnHeatmap({
+                      columns: [1,2],
+                      inverse:true,
+                      colorStartPoint: 240
+                    });
+                    {#var div = document.getElementById('selection');#}
+                    {#div.innerHTML = tableContent;#}
                     {##}
                     {#alert( 'Summary for the selection' + '\n\n' +#}
                     {#    'Event data:' + '\n' +#}
@@ -236,6 +294,29 @@
                     {#);#}
                 }
           );
+
+          $('#searched_sequences').columnHeatmap({
+              columns: [2,3],
+              inverse:true,
+              colorStartPoint: 240
+            });
+          $('#searched_sequences').columnHeatmap({
+              columns: [4],
+              inverse:false,
+              {#colorStartPoint: 240#}
+            });
+
+          $('#peaks_statistics').columnHeatmap({
+              columns: [4,5],
+              inverse:true,
+              colorStartPoint: 240
+            });
+
+          $('#table_selection').columnHeatmap({
+              columns: [1,2],
+              inverse:true,
+              colorStartPoint: 240
+            });
 
         </script>
 

@@ -176,7 +176,7 @@ def delete(sessionID):
 
 @app.route('/results')
 def results():
-    if 'input_data' in session:
+    if 'input_data' in session and session['input_data'] is not None:
         data = session['input_data']
         if os.path.exists(os.path.join(data['parameters']['new_dir'], 'sequences.json')):
             with open(os.path.join(data['parameters']['new_dir'], 'sequences.json'), 'r') as f1:
