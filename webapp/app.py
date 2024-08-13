@@ -199,7 +199,8 @@ def results():
                                        plots={'hist1': distrJSON},
                                        data=data,
                                        sequences=sequences,
-                                       fastq_parameters=fastq_parameters)
+                                       fastq_parameters=fastq_parameters,
+                                       page='results')
         else:
             output_data = sequence_distribution.main(data['parameters']['new_dir'])
             with open(os.path.join(data['parameters']['new_dir'],'sequences.json'), 'w') as f:
