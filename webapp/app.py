@@ -130,7 +130,7 @@ def index():
         session['input_data'] = input_data
         return redirect(url_for('results'))
     else:
-        return render_template('index.html', form=form)
+        return render_template('index.html', form=form, page='index')
 
 
 @app.route('/contacts')
@@ -146,7 +146,7 @@ def sessions():
     # for session_info in all_sessions_list:
     #     print(session_info)
 
-    return render_template('sessions.html', sessions=all_sessions_list)
+    return render_template('sessions.html', sessions=all_sessions_list, page='sessions')
 #
 @app.route('/experiment/<sessionID>')
 def experiment(sessionID):
@@ -226,9 +226,10 @@ def results():
                                    plots=plots,
                                    data=data,
                                    sequences=sequences,
-                                   fastq_parameters=fastq_parameters)
+                                   fastq_parameters=fastq_parameters,
+                                   page='results')
     else:
-        return render_template('no_results.html')
+        return render_template('no_results.html', page='results')
 
 if __name__ == '__main__':
     app.run(debug=True)

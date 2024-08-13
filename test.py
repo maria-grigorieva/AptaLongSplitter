@@ -75,17 +75,17 @@ def get_all_occurrences(reference, all_sequences):
     print(data_absolute_df)
     #return sorted([i if i>=0 else -1 for i in occurrences])
 
-length = len(reference)
-substrings = [s_long[i:i + length] for i in range(len(s_long) - length + 1)]
-idx, values = zip(*[(s_long.find(i), fuzz.ratio(i, reference)) for i in substrings])
-print(values)
-
-# Plotting the values
-plt.plot(values)
-plt.xlabel('Position in sequence')
-plt.ylabel('Percentage of similarity with the reference')
-# plt.title('Plot of the List Values')
-plt.show()
+# length = len(reference)
+# substrings = [s_long[i:i + length] for i in range(len(s_long) - length + 1)]
+# idx, values = zip(*[(s_long.find(i), fuzz.ratio(i, reference)) for i in substrings])
+# print(values)
+#
+# # Plotting the values
+# plt.plot(values)
+# plt.xlabel('Position in sequence')
+# plt.ylabel('Percentage of similarity with the reference')
+# # plt.title('Plot of the List Values')
+# plt.show()
 
 # find_regexp(s, reference)
 
@@ -124,3 +124,69 @@ plt.show()
 #     for s in sequences:
 #         pairwise_similarity_search(s, reference)
 #     print(f"BioPython Pairwise2 Similarity search for {l} sequences: {(time.time() - start_time)}")
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.Align import MultipleSeqAlignment
+from Bio import Align
+from Bio.Align import AlignInfo
+
+subset = [
+"AAAGTTTAATAGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGATTTAATAGGGAAACACGATAGAATCCGAACAGCACC",
+"AAGGTTAATAGGAAACACGATAGGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAAGAATCCGAACAGCACC",
+"AAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"AAGGTTAATAGGGAAACACGATAGAATCGAACACGCTTCT",
+"AAGGTTAATAGGGAAACTGCGATAGAATCCGAGCAGCACC",
+"AAGGTTAATGAGAAACACACGATAGAATCGAACAGCACCT",
+"AAGGTTATGAGGGAAACACGATAGAATCGAGAACAGCACC",
+"AGGTTAATGAGGGGAAACACGATAGAATCCGAACAGCACC",
+"CTAAGGTTAATAGGAAACACGATGAATCGAACAGCACCTG",
+"TAAGGTTAATAGAAACACGATAGAATCCGAACAGCACCTA",
+"TAAGGTTAATAGGAAACACGATAGAATCCGAACAGCACCT",
+"TAAGGTTAATAGGAAACACGATAGAATCCGAACAGCACCT",
+"TAAGGTTAATAGGAAACACGATAGAATCCGAACAGCACCT",
+"TAAGGTTAATAGGAAACACGATAGAATCCGAACAGCACCT",
+"TAAGGTTAATAGGAAACACGATAGAATCGAGCAGCACCTG",
+"TAAGGTTAATAGGGAAACACATTAAATCGAACAGCACCTG",
+"TAAGGTTAATAGGGAAACACGATAGAATCCGAACAGCACC",
+"TAAGGTTAATAGGGAAACACGATAGAATCCGAACGGCACC",
+"TAAGGTTAATAGGGAAACACGATAGAATCGAACAGCACCT",
+"TAAGGTTAATAGGGAAACACGATAGAATCGAACAGCACCT",
+"TAAGGTTAATAGGGAAACACGATAGAATCGAACAGCACCT",
+"TAAGGTTAATAGGGAAACACGATAGATCCGAACAGCACCT",
+"TAAGGTTAATAGGGAAACACGATGATCCGAACAACACCTG",
+"TAAGGTTAATAGGGAAACGATGAATCCAAGAACAGCACCT",
+"TAAGGTTAATAGGGAAGCACGATAGAATCCGAACAGCCTA",
+"TAAGGTTAATAGGGAAGCACGATAGAATCGAACAGCACCT",
+"TAAGGTTAATGAGAAACACGATAGAATCCGAACAGCACCT",
+"TAAGGTTAATGGGAAACACGATAGAATCCGAACAGCACCT",
+"TAAGTTAATAGGGAAACACGATAGAATCCGAACAGCACCT",
+"TAGGTTAATAGGGAAACACGATAGAATCGAACAGCACCTG",
+"TTAGTTAATAGGAAACACGATAGAATCCGAACAGCACCTC",
+"AAGGTTAATAAGGAAACACGATGAAGATCCGAACAGCACC"]
+
+
+consensus_values = []
+records = [SeqRecord(Seq(seq), id=f"seq{i + 1}") for i, seq in enumerate(subset)]
+msa = MultipleSeqAlignment(records)
+summary_align = AlignInfo.SummaryInfo(msa)
+print(summary_align.alignment)
+consensus = summary_align.dumb_consensus(ambiguous='X')
+print(consensus)
+alignment = msa.alignment
+from Bio.motifs import Motif
+motif = Motif("ACGT", alignment)
+print(motif.consensus)
+print(motif.degenerate_consensus)
+counts = motif.counts
+consensus = counts.calculate_consensus(identity=0.7)
+print(consensus)

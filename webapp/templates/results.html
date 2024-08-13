@@ -1,23 +1,10 @@
 {% extends "base.html" %}
 
+    {% block header %}
+        {{ super() }}
+        {% endblock %}
+
 {% block body%}
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Sequence Distributions</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link" aria-current="page" href="/">Home</a>
-        <a class="nav-link active" href="../results">Results</a>
-        <a class="nav-link" href="../sessions">Saved Sessions</a>
-        <a class="nav-link" href="contacts">Contacts</a>
-      </div>
-    </div>
-  </div>
-</nav>
-<div class="container mt-5 small">
 	<h4 class="my-4 text-center">Sequence Occurrences</h4>
 <div class="container mt-5">
     <div class="row">
@@ -59,16 +46,6 @@
                 </tr>
             </tbody>
         </table>
-
-{#            <ul class="list-group list-group-flush">#}
-{#                <li class="list-group-item"><strong>Session Name:</strong> {{ data['session_name'] }}</li>#}
-{#                <li class="list-group-item"><strong>Limit:</strong> {{ data['parameters']['limit'] }}</li>#}
-{#                <li class="list-group-item"><strong>Threshold:</strong> {{ data['parameters']['threshold'] }}</li>#}
-{#                <li class="list-group-item"><strong>Smoothing:</strong> {{ data['parameters']['smoothing'] }}</li>#}
-{#                <li class="list-group-item"><strong>Filename:</strong> {{ data['parameters']['filename'] }}</li>#}
-{#                <li class="list-group-item"><strong>Number of sequences:</strong> {{ fastq_parameters['n_records'] }}</li>#}
-{#                <li class="list-group-item"><strong>Average level of noise:</strong> {{ fastq_parameters['avg_noise_level'] }}</li>#}
-{#            </ul>#}
           </div>
         </div>
       </div>
@@ -111,71 +88,67 @@
         </div>
       </div>
     </div>
-{#        <div class="card">#}
-{#            <div class="card-header">#}
-{#                <h3 class="card-title">Input Data</h3>#}
-{#            </div>#}
-{#            <div class="card-body ps-2">#}
-{#                <ul class="list-group list-group-flush">#}
-{#                    <li class="list-group-item"><strong>Session Name:</strong> {{ data['session_name'] }}</li>#}
-{#                    {% for key, value in data['sequences'].items() %}#}
-{#                        <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>#}
-{#                    {% endfor %}#}
-{#                    <li class="list-group-item"><strong>Limit:</strong> {{ data['parameters']['limit'] }}</li>#}
-{#                    <li class="list-group-item"><strong>Threshold:</strong> {{ data['parameters']['threshold'] }}</li>#}
-{#                    <li class="list-group-item"><strong>Smoothing:</strong> {{ data['parameters']['smoothing'] }}</li>#}
-{#                    <li class="list-group-item"><strong>Filename:</strong> {{ data['parameters']['filename'] }}</li>#}
-{#                    <li class="list-group-item"><strong>Number of sequences:</strong> {{ fastq_parameters['n_records'] }}</li>#}
-{#                    <li class="list-group-item"><strong>Average level of noise:</strong> {{ fastq_parameters['avg_noise_level'] }}</li>#}
-{#                </ul>#}
-{#            </div>#}
-{#        </div>#}
     </div>
 
-    <div id='chart1' class='chart'>
+    <div id='chart1'>
 {#        {{plots['hist1'] | safe}}#}
     </div>
-<!--    <div id='chart2' class='chart'”></div>-->
-    <h4>Peaks Statistics</h4>
-    <div id='chart3' class='chart'”></div>
 
 <div id='stats_tables'>
  <div class="container">
-       <div class="row">
-           <div class="col-md-6">
-               <table id="peaks_statistics" class="table table-hover table-sm small">
-    <thead>
-        <tr>
-            <th>Type</th>
-            <th>Peak Index</th>
-            <th>Left Bases</th>
-            <th>Right Bases</th>
-            <th>Total Proportion</th>
-            <th>Total Reads</th>
-            <th>Peak Distance</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for seq in sequences %}
-            {% for row in seq['peaks'] %}
-                <tr>
-                    <td><strong>{{ seq['type'] }}</strong></td>
-                    <td>{{ row['peak_index'] }}</td>
-                    <td>{{ row['left_bases'] }}</td>
-                    <td>{{ row['right_bases'] }}</td>
-                    <td>{{ row['total_proportion'] }}</td>
-                    <td>{{ row['total_reads'] }}</td>
-                    <td>{{ row['peak_dist'] }}</td>
-{#                    {% if loop.first %}#}
-{#                        <td rowspan="{{ loop.length }}">#}
-{#                            <strong>{{ seq['type'] }}</strong>#}
-{#                        </td>#}
-{#                    {% endif %}#}
-                </tr>
+     <div class="row">
+             <div class="col-md-6" id="selection">
+        <h4 id="header_selection">Selection</h4>
+        <table border="1" id="table_selection" class="table table-hover table-sm small">
+            <thead>
+            <tr><th>Type</th><th>Reads</th><th>Proportion</th><th>Motif Consensus</th></tr>
+            </thead>
+            <tbody>
+            {% for seq in sequences %}
+                    <tr><td>{{ seq['type'] }}</td><td>0</td><td>0</td><td></td></tr>
             {% endfor %}
-        {% endfor %}
-    </tbody>
-</table>
+            </tbody>
+        </table>
+    </div>
+         <h4>Peaks Statistics</h4>
+     </div>
+       <div class="row">
+           <div class="col-md-10">
+               <table id="peaks_statistics" border="1" class="table table-hover table-sm small">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Peak Index</th>
+                            <th>Left Bases</th>
+                            <th>Right Bases</th>
+                            <th>Total Proportion</th>
+                            <th>Total Reads</th>
+                            <th>Peak Distance</th>
+                            <th>Motif Consensus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for seq in sequences %}
+                            {% for row in seq['peaks'] %}
+                                <tr>
+                                    <td><strong>{{ seq['type'] }}</strong></td>
+                                    <td>{{ row['peak_index'] }}</td>
+                                    <td>{{ row['left_bases'] }}</td>
+                                    <td>{{ row['right_bases'] }}</td>
+                                    <td>{{ row['total_proportion'] }}</td>
+                                    <td>{{ row['total_reads'] }}</td>
+                                    <td>{{ row['peak_dist'] }}</td>
+                                    <td class="consensus" reference="{{ seq['sequence'] }}">{{ row['motif_consensus'] }}</td>
+                {#                    {% if loop.first %}#}
+                {#                        <td rowspan="{{ loop.length }}">#}
+                {#                            <strong>{{ seq['type'] }}</strong>#}
+                {#                        </td>#}
+                {#                    {% endif %}#}
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
 
 {#       <table id="peaks_statistics" class="table table-hover table-sm small">#}
 {#        <thead>#}
@@ -210,25 +183,25 @@
 {#        </tbody>#}
 {#    </table>#}
            </div>
-            <div class="col-md-4" id="selection">
-                <h4 id="header_selection">Selection</h4>
-                <table border="1" id="table_selection" class="table table-hover table-sm small">
-                    <thead>
-                    <tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>
-                    </thead>
-                    <tbody>
-                    {% for seq in sequences %}
-                            <tr><td>{{ seq['type'] }}</td><td>0</td><td>0</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+{#            <div class="col-md-4" id="selection">#}
+{#                <h4 id="header_selection">Selection</h4>#}
+{#                <table border="1" id="table_selection" class="table table-hover table-sm small">#}
+{#                    <thead>#}
+{#                    <tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>#}
+{#                    </thead>#}
+{#                    <tbody>#}
+{#                    {% for seq in sequences %}#}
+{#                            <tr><td>{{ seq['type'] }}</td><td>0</td><td>0</td></tr>#}
+{#                    {% endfor %}#}
+{#                    </tbody>#}
+{#                </table>#}
+{#            </div>#}
        </div>
 
    </div>
 </div>
 
-</div>
+{#</div>#}
         <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
         <script type='text/javascript'>
           var graph1 = {{plots['hist1'] | safe}};
@@ -240,48 +213,84 @@
                 function(eventdata){
                     start_index = Math.round(eventdata['xaxis.range[0]']);
                     end_index = Math.round(eventdata['xaxis.range[1]']);
-                    var results = [];
+                    if (eventdata['xaxis.autorange'] != true) {
+                        var results = [];
+                        sequences.forEach(function(item) {
+                            var sumReads = 0;
+                            var sumProportion = 0;
 
-                    sequences.forEach(function(item) {
-                        var sumReads = 0;
-                        var sumProportion = 0;
+                            item.value_counts.forEach(function(entry) {
+                                if (entry.index >= start_index && entry.index <= end_index) {
+                                    sumReads += entry.reads;
+                                    sumProportion += entry.proportion;
+                                }
+                            });
+                            // Initialize variables for maximum value of 'a' and its corresponding index
+                            let maxReads = -Infinity;
+                            let maxIndex = -1;
 
-                        item.value_counts.forEach(function(entry) {
-                            if (entry.index >= start_index && entry.index <= end_index) {
-                                sumReads += entry.reads;
-                                sumProportion += entry.proportion;
+                            // Iterate through the list
+                            for (let i = start_index; i < end_index; i++) {
+                                if (item.value_counts[i].reads > maxReads) {
+                                    maxReads = item.value_counts[i].reads;
+                                    maxIndex = item.value_counts[i].index;
+                                }
                             }
+
+                            var consensus = item.value_counts[maxIndex]['consensus'];
+
+                            results.push({
+                                "type": item.type,
+                                "sequence": item.sequence,
+                                "reads": sumReads,
+                                "proportion": sumProportion.toFixed(4),
+                                "consensus": consensus
+                            });
+                        });
+                        var title = 'Selection: ' + start_index + '-' + end_index;
+                        var header = document.getElementById('header_selection');
+                        header.textContent = title;
+                        var table = document.getElementById('table_selection');
+                        let tbody = table.getElementsByTagName("tbody")[0];
+                        var tableContent = '';
+                        {##}
+                        {#var tableContent = '<h4>'+title+'</h4><table border="1" id="table_selection" class="table table-hover table-sm small">';#}
+                        {#tableContent += '<tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>';#}
+
+                          results.forEach(function(item) {
+                            tableContent += '<tr><td>' + item.type + '</td><td>' + item.reads + '</td><td>' + item.proportion + '</td><td class="consensus" reference='+ item.sequence+'>'+item.consensus+'</td></tr>';
+                          });
+
+                          {#tableContent += '</table>';#}
+                        tbody.innerHTML = tableContent;
+
+                        $('#table_selection').columnHeatmap({
+                          columns: [1,2],
+                          inverse:true,
+                          colorStartPoint: 240
                         });
 
-                        results.push({
-                            "type": item.type,
-                            "sequence": item.sequence,
-                            "reads": sumReads,
-                            "proportion": sumProportion.toFixed(4)
+                        $('.consensus').each(function() {
+                            let originalText = $(this).text();
+                            let comparedText =  $(this).attr('reference');
+                            let highlightedText = highlightMatchingChars(originalText, comparedText);
+                            $(this).html(highlightedText);
                         });
-                    });
-                    var title = 'Selection: ' + start_index + '-' + end_index;
-                    var header = document.getElementById('header_selection');
-                    header.textContent = title;
-                    var table = document.getElementById('table_selection');
-                    let tbody = table.getElementsByTagName("tbody")[0];
-                    var tableContent = '';
-                    {##}
-                    {#var tableContent = '<h4>'+title+'</h4><table border="1" id="table_selection" class="table table-hover table-sm small">';#}
-                    {#tableContent += '<tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>';#}
+                    }
+                    else {
+                        var title = 'Selection: ' + start_index + '-' + end_index;
+                        var header = document.getElementById('header_selection');
+                        header.textContent = title;
+                        var table = document.getElementById('table_selection');
+                        let tbody = table.getElementsByTagName("tbody")[0];
+                        var tableContent = '';
 
-                      results.forEach(function(item) {
-                        tableContent += '<tr><td>' + item.type + '</td><td>' + item.reads + '</td><td>' + item.proportion + '</td></tr>';
-                      });
+                        sequences.forEach(function(item) {
+                          tableContent += '<tr><td>' + item.type + '</td><td>0</td><td>0</td><td></td></tr>';
+                        });
+                        tbody.innerHTML = tableContent;
+                    }
 
-                      {#tableContent += '</table>';#}
-                    tbody.innerHTML = tableContent;
-
-                    $('#table_selection').columnHeatmap({
-                      columns: [1,2],
-                      inverse:true,
-                      colorStartPoint: 240
-                    });
                     {#var div = document.getElementById('selection');#}
                     {#div.innerHTML = tableContent;#}
                     {##}
@@ -317,6 +326,31 @@
               inverse:true,
               colorStartPoint: 240
             });
+
+          // Define the highlightMatchingChars function
+        function highlightMatchingChars(strA, strB) {
+            let result = "";
+
+            for (let i = 0; i < strA.length; i++) {
+                if (strA[i] === strB[i]) {
+                    result += `<span style="color: green;">${strA[i]}</span>`;
+                } else {
+                    result += strA[i];
+                }
+            }
+
+            return result;
+        }
+
+          // Apply the function to all <td> elements with class 'consensus'
+        $('.consensus').each(function() {
+            let originalText = $(this).text();
+            let comparedText =  $(this).attr('reference');
+            let highlightedText = highlightMatchingChars(originalText, comparedText);
+            $(this).html(highlightedText);
+        });
+
+
 
         </script>
 

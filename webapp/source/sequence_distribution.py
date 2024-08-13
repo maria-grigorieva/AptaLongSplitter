@@ -1,5 +1,11 @@
 import pandas as pd
 from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.Align import MultipleSeqAlignment
+from Bio import Align
+from Bio.motifs import Motif
+
 from rapidfuzz import fuzz
 import numpy as np
 from tqdm import tqdm
@@ -11,6 +17,8 @@ from whittaker_eilers import WhittakerSmoother
 from statsmodels.nonparametric.kernel_regression import KernelReg
 from confsmooth import confsmooth
 from scipy.stats import variation
+from Bio.Align import AlignInfo
+
 
 def find_fuzzy_substring_matches(s, reference, treshold):
     length = len(reference)
@@ -20,7 +28,8 @@ def find_fuzzy_substring_matches(s, reference, treshold):
         idx, values = zip(*arr)
         peak_indices, _ = find_peaks(values, distance=length)
         if len(peak_indices) > 0:
-            return [idx[item] for item in peak_indices.tolist()]
+            # NEW!!!
+            return [(idx[item], s[idx[item]:idx[item]+length]) for item in peak_indices.tolist()]
         else:
             return None
     else:
@@ -35,8 +44,28 @@ def get_all_occurrences(reference, type, all_sequences, n_records, avg_length, t
         except Exception as e:
             pass
         # occurrences.extend(current_occurrences if len(current_occurrences) > 0 else [-1])
-    unique_values, counts = np.unique(sorted(occurrences), return_counts=True)
-    data = [{'index': value, 'reads': count, 'proportion': round(count / n_records,4)} for value, count in zip(unique_values, counts)]
+    # NEW !!!!
+    arr = np.array(sorted(occurrences), dtype=[('index', int), ('reference', 'O')])
+    arr_df = pd.DataFrame(arr)
+    unique_values, counts = np.unique(arr_df['index'], return_counts=True)
+    # unique_counts = arr_df['index'].value_counts()
+    consensus_values = []
+    for unique_occurrence in unique_values:
+        subset = arr_df[arr_df['index'] == unique_occurrence]['reference'].values
+        records = [SeqRecord(Seq(seq), id=f"seq{i + 1}") for i, seq in enumerate(subset)]
+        msa = MultipleSeqAlignment(records)
+        alignment = msa.alignment
+        motif = Motif("ACGT", alignment)
+        consensus_values.append(str(motif.consensus))
+        # summary_align = AlignInfo.SummaryInfo(msa)
+        # consensus = summary_align.dumb_consensus()
+        # consensus_values.append(str(consensus))
+
+    data = [{'index': value, 'reads': count, 'proportion': round(count / n_records, 4), 'consensus': consensus} for value, count, consensus in
+            zip(unique_values, counts, consensus_values)]
+    # OLD!!!!
+    #unique_values, counts = np.unique(sorted(occurrences), return_counts=True)
+    #data = [{'index': value, 'reads': count, 'proportion': round(count / n_records,4)} for value, count in zip(unique_values, counts)]
     df = pd.DataFrame(data)
     all_indexes = pd.Series(range(0, avg_length))
     result = all_indexes.to_frame('index').merge(df, on='index', how='left').fillna(0)
@@ -126,11 +155,13 @@ def aggregate_peak_values(step, df, peak_index, bases):
     right_bases = bases['right_bases'][step]
     total_proportion = np.round(np.sum(df.iloc[left_bases:right_bases]['proportion'].values), 4)
     total_occurrences = np.round(np.sum(df.iloc[left_bases:right_bases]['reads'].values), 4)
+    consensus = df.loc[int(peak_index),'consensus']
     return {'peak_index': int(peak_index),
           'left_bases': int(left_bases),
           'right_bases': int(right_bases),
           'total_proportion': float(total_proportion),
-          'total_reads': int(total_occurrences)}
+          'total_reads': int(total_occurrences),
+          'motif_consensus': str(consensus)}
 
 def calculate_average_peaks_distance(peaks):
     indexes = [p['peak_index'] for p in peaks]
