@@ -4,7 +4,11 @@
     {{ super() }}
 {% endblock %}
 {% block body%}
+    {% block description %}
+    {% include 'description.html' %}
+{% endblock %}
 {#<div class="container mt-5 small">#}
+
 <form method="POST" enctype="multipart/form-data" class="form">
     {{ form.hidden_tag() }}
 <div class="card" style="width: 50rem;">

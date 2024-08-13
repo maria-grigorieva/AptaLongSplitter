@@ -4,8 +4,7 @@
         {{ super() }}
         {% endblock %}
 {% block body%}
-	<h1 class="my-4 text-center">Saved Sessions</h1>
-    <div class="container">
+	<h2 class="my-4 text-center">Saved Sessions</h2>
         <div class="row row-cols-3">
             {% for session in sessions %}
             <div class="col">
@@ -30,5 +29,4 @@
             </div>
             {% endfor %}
         </div>
-    </div>
 {% endblock %}
