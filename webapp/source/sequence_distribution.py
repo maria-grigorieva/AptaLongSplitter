@@ -130,7 +130,7 @@ def get_peak_occurrences(x, smoothing):
     avg_prominence = np.mean(prominences)
     widths = peak_widths(x['occurences'][target].values, peaks, rel_height=1)[0]
     peak_indices, bases = find_peaks(x['occurences'][target].values,
-                                     width=np.percentile(widths,15),
+                                     #width=np.percentile(widths,15),
                                      # distance=round(len(x['sequence'])),
                                      # height=0.0001,
                                      prominence=avg_prominence)
