@@ -129,6 +129,7 @@
                     </thead>
                     <tbody>
                         {% for seq in sequences %}
+                            {% if seq['peaks'] %}
                             {% for row in seq['peaks'] %}
                                 <tr>
                                     <td><strong>{{ seq['type'] }}</strong></td>
@@ -146,6 +147,7 @@
                 {#                    {% endif %}#}
                                 </tr>
                             {% endfor %}
+                            {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -216,66 +218,67 @@
                     if (eventdata['xaxis.autorange'] != true) {
                         var results = [];
                         sequences.forEach(function(item) {
-                            var sumReads = 0;
-                            var sumProportion = 0;
+                            {#if (item.value_counts != None) {#}
+                                var sumReads = 0;
+                                var sumProportion = 0;
 
-                            item.value_counts.forEach(function(entry) {
-                                if (entry.index >= start_index && entry.index <= end_index) {
-                                    sumReads += entry.reads;
-                                    sumProportion += entry.proportion;
+                                item.value_counts.forEach(function (entry) {
+                                    if (entry.index >= start_index && entry.index <= end_index) {
+                                        sumReads += entry.reads;
+                                        sumProportion += entry.proportion;
+                                    }
+                                });
+                                // Initialize variables for maximum value of 'a' and its corresponding index
+                                let maxReads = -Infinity;
+                                let maxIndex = -1;
+
+                                // Iterate through the list
+                                for (let i = start_index; i < end_index; i++) {
+                                    if (item.value_counts[i].reads > maxReads) {
+                                        maxReads = item.value_counts[i].reads;
+                                        maxIndex = item.value_counts[i].index;
+                                    }
                                 }
+
+                                var consensus = item.value_counts[maxIndex]['consensus'];
+
+                                results.push({
+                                    "type": item.type,
+                                    "sequence": item.sequence,
+                                    "reads": sumReads,
+                                    "proportion": sumProportion.toFixed(4),
+                                    "consensus": consensus
+                                });
                             });
-                            // Initialize variables for maximum value of 'a' and its corresponding index
-                            let maxReads = -Infinity;
-                            let maxIndex = -1;
+                            var title = 'Selection: ' + start_index + '-' + end_index;
+                            var header = document.getElementById('header_selection');
+                            header.textContent = title;
+                            var table = document.getElementById('table_selection');
+                            let tbody = table.getElementsByTagName("tbody")[0];
+                            var tableContent = '';
+                            {##}
+                            {#var tableContent = '<h4>'+title+'</h4><table border="1" id="table_selection" class="table table-hover table-sm small">';#}
+                            {#tableContent += '<tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>';#}
 
-                            // Iterate through the list
-                            for (let i = start_index; i < end_index; i++) {
-                                if (item.value_counts[i].reads > maxReads) {
-                                    maxReads = item.value_counts[i].reads;
-                                    maxIndex = item.value_counts[i].index;
-                                }
-                            }
+                              results.forEach(function(item) {
+                                tableContent += '<tr><td>' + item.type + '</td><td>' + item.reads + '</td><td>' + item.proportion + '</td><td class="consensus" reference='+ item.sequence+'>'+item.consensus+'</td></tr>';
+                              });
 
-                            var consensus = item.value_counts[maxIndex]['consensus'];
+                              {#tableContent += '</table>';#}
+                            tbody.innerHTML = tableContent;
 
-                            results.push({
-                                "type": item.type,
-                                "sequence": item.sequence,
-                                "reads": sumReads,
-                                "proportion": sumProportion.toFixed(4),
-                                "consensus": consensus
+                            $('#table_selection').columnHeatmap({
+                              columns: [1,2],
+                              inverse:true,
+                              colorStartPoint: 240
                             });
-                        });
-                        var title = 'Selection: ' + start_index + '-' + end_index;
-                        var header = document.getElementById('header_selection');
-                        header.textContent = title;
-                        var table = document.getElementById('table_selection');
-                        let tbody = table.getElementsByTagName("tbody")[0];
-                        var tableContent = '';
-                        {##}
-                        {#var tableContent = '<h4>'+title+'</h4><table border="1" id="table_selection" class="table table-hover table-sm small">';#}
-                        {#tableContent += '<tr><th>Type</th><th>Reads</th><th>Proportion</th></tr>';#}
 
-                          results.forEach(function(item) {
-                            tableContent += '<tr><td>' + item.type + '</td><td>' + item.reads + '</td><td>' + item.proportion + '</td><td class="consensus" reference='+ item.sequence+'>'+item.consensus+'</td></tr>';
-                          });
-
-                          {#tableContent += '</table>';#}
-                        tbody.innerHTML = tableContent;
-
-                        $('#table_selection').columnHeatmap({
-                          columns: [1,2],
-                          inverse:true,
-                          colorStartPoint: 240
-                        });
-
-                        $('.consensus').each(function() {
-                            let originalText = $(this).text();
-                            let comparedText =  $(this).attr('reference');
-                            let highlightedText = highlightMatchingChars(originalText, comparedText);
-                            $(this).html(highlightedText);
-                        });
+                            $('.consensus').each(function() {
+                                let originalText = $(this).text();
+                                let comparedText =  $(this).attr('reference');
+                                let highlightedText = highlightMatchingChars(originalText, comparedText);
+                                $(this).html(highlightedText);
+                            });
                     }
                     else {
                         var title = 'Selection: ' + start_index + '-' + end_index;
