@@ -1,0 +1,23 @@
+{% block header %}
+<nav class="navbar navbar-expand-lg bg-body-tertiary navbar-light" style="background-color: #e3f2fd;">
+  <div class="container-fluid">
+  <a class="navbar-brand" href="#">
+    <img src="{{url_for('static', filename='img/logo.png')}}" width="50" height="50" alt="">
+  </a>
+    <a class="navbar-brand" href="#">NanoporeInspect</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+      {% block navigation %}
+              <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+              <a class="nav-link {% if page == 'index' %}active{% endif %}" aria-current="page" href="/">Home</a>
+            <a class="nav-link {% if page == 'results' %}active{% endif %}" href="results">Results</a>
+            <a class="nav-link {% if page == 'sessions' %}active{% endif %}" href="sessions">Saved Sessions</a>
+            <a class="nav-link {% if page == 'contacts' %}active{% endif %}" href="contacts">Contacts</a>
+      </div>
+    </div>
+      {% endblock %}
+  </div>
+</nav>
+{% endblock %}

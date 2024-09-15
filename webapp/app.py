@@ -130,7 +130,7 @@ def index():
         session['input_data'] = input_data
         return redirect(url_for('results'))
     else:
-        return render_template('index.html', form=form)
+        return render_template('index.html', form=form, page='index')
 
 
 @app.route('/contacts')
@@ -146,7 +146,7 @@ def sessions():
     # for session_info in all_sessions_list:
     #     print(session_info)
 
-    return render_template('sessions.html', sessions=all_sessions_list)
+    return render_template('sessions.html', sessions=all_sessions_list, page='sessions')
 #
 @app.route('/experiment/<sessionID>')
 def experiment(sessionID):
@@ -186,11 +186,11 @@ def results():
                 distrJSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
                 sequences = [{'type': seq['type'],
                               'sequence': seq['sequence'],
-                              'peaks': seq['peaks'],
-                              'noise_level': seq['noise_level'],
-                              'total_reads': seq['total_reads'],
-                              'total_proportion': seq['total_proportion'],
-                              'value_counts': seq['value_counts']
+                              'peaks': seq['peaks'] if 'peaks' in seq else [],
+                              'noise_level': seq['noise_level'] if 'noise_level' in seq else 0,
+                              'total_reads': seq['total_reads'] if 'total_reads' in seq else 0,
+                              'total_proportion': seq['total_proportion'] if 'total_proportion' in seq else 0,
+                              'value_counts': seq['value_counts'] if 'value_counts' in seq else []
                               } for seq in output_data['sequences']]
                 fastq_parameters = {'n_records': output_data['parameters']['n_records'],
                                     'avg_noise_level': output_data['parameters']['avg_noise_level']}
@@ -199,7 +199,8 @@ def results():
                                        plots={'hist1': distrJSON},
                                        data=data,
                                        sequences=sequences,
-                                       fastq_parameters=fastq_parameters)
+                                       fastq_parameters=fastq_parameters,
+                                       page='results')
         else:
             output_data = sequence_distribution.main(data['parameters']['new_dir'])
             with open(os.path.join(data['parameters']['new_dir'],'sequences.json'), 'w') as f:
@@ -214,21 +215,24 @@ def results():
             plots = {'hist1': distrJSON}
             sequences = [{'type': seq['type'],
                           'sequence': seq['sequence'],
-                          'peaks': seq['peaks'],
-                          'noise_level': seq['noise_level'],
-                          'total_reads': seq['total_reads'],
-                          'total_proportion': seq['total_proportion'],
-                          'value_counts': seq['value_counts']
+                          'peaks': seq['peaks'] if 'peaks' in seq else [],
+                          'noise_level': seq['noise_level'] if 'noise_level' in seq else 0,
+                          'total_reads': seq['total_reads'] if 'total_reads' in seq else 0,
+                          'total_proportion': seq['total_proportion'] if 'total_proportion' in seq else 0,
+                          'value_counts': seq['value_counts'] if 'value_counts' in seq else []
                           } for seq in output_data['sequences']]
             fastq_parameters = {'n_records': output_data['parameters']['n_records'],
-                                'avg_noise_level': output_data['parameters']['avg_noise_level']}
+                                'avg_noise_level': output_data['parameters']['avg_noise_level'] \
+                                    if 'avg_noise_level' in output_data['parameters'] else None
+                                }
             return render_template('results.html',
                                    plots=plots,
                                    data=data,
                                    sequences=sequences,
-                                   fastq_parameters=fastq_parameters)
+                                   fastq_parameters=fastq_parameters,
+                                   page='results')
     else:
-        return render_template('no_results.html')
+        return render_template('no_results.html', page='results')
 
 if __name__ == '__main__':
     app.run(debug=True)
