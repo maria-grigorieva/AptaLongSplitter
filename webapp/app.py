@@ -1,5 +1,7 @@
+from datetime import datetime
+
 import pandas as pd
-from flask import Flask, render_template, request, url_for, redirect, session
+from flask import Flask, render_template, request, url_for, redirect, session, jsonify
 import requests
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm, CSRFProtect
@@ -17,19 +19,60 @@ import plotly.graph_objects as go
 from numpyencoder import NumpyEncoder
 from plotly.offline import iplot
 import shutil
+from celery import Celery, Task
+from celery import shared_task
+from time import sleep
+from celery.result import AsyncResult
+import uuid
+from pathlib import Path
+from flask_mail import Mail, Message
+import os
 
+
+def celery_init_app(app: Flask) -> Celery:
+    class FlaskTask(Task):
+        def __call__(self, *args: object, **kwargs: object) -> object:
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery_app = Celery(app.name, task_cls=FlaskTask)
+    celery_app.config_from_object(app.config["CELERY"])
+    celery_app.set_default()
+    app.extensions["celery"] = celery_app
+    return celery_app
 
 app = Flask(__name__)
 app.secret_key = 'tO$&!|0wkamvVia0?n$NqIRVWOG'
 app.config['UPLOAD_FOLDER'] = 'static/sessions/'
+app.config.from_mapping(
+    CELERY=dict(
+        broker_url="redis://localhost:6379/0",
+        result_backend="redis://localhost:6379/0",
+        task_ignore_result=True,
+    ),
+)
 # Bootstrap-Flask requires this line
 bootstrap = Bootstrap5(app)
 # Flask-WTF requires this line
 csrf = CSRFProtect(app)
+celery_app = celery_init_app(app)
+
+
+# Configuration for Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.yandex.ru'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+
 
 import secrets
 foo = secrets.token_urlsafe(16)
 app.secret_key = foo
+
+# Initialize Flask-Mail
+mail = Mail(app)
 
 class SequenceItem(Form):
     type = StringField('Type')
@@ -42,6 +85,7 @@ class InputForm(FlaskForm):
     threshold = FloatField('Threshold', validators=[DataRequired()], default=0.9)
     smoothing = SelectField('Smoothing',
                 choices=[('None','None'),('LOWESS','lowess'),('Whittaker Smoother', 'whittaker'),('savgol','savgol'),('confsmooth','confsmooth')])
+    email = StringField('Email', validators=[DataRequired()])
     file = FileField('fastq_file', validators=[FileRequired()])
     submit = SubmitField('Submit')
 
@@ -98,6 +142,7 @@ def index():
         limit = form.limit.data
         threshold = form.threshold.data
         smoothing = dict(form.smoothing.choices).get(form.smoothing.data)
+        email = form.email.data
 
         file = form.file.data
         filename = secure_filename(file.filename)
@@ -119,7 +164,9 @@ def index():
                      'threshold': threshold,
                      'filename': filename,
                      'new_dir': new_dir,
-                     'smoothing': smoothing}
+                     'smoothing': smoothing,
+                     'email': email,
+                      'datetime': str(datetime.now())}
 
         gerenate_config(sequences,
                         parameters)
@@ -173,6 +220,25 @@ def delete(sessionID):
     session['input_data'] = None
     return redirect(url_for('sessions'))
 
+def generate_session_id():
+    # Generate a random UUID (version 4)
+    session_id = uuid.uuid4()
+    return str(session_id)
+
+@shared_task(ignore_result=False)
+def data_processing(data):
+    output_data = sequence_distribution.main(data['parameters']['new_dir'])
+    with open(os.path.join(data['parameters']['new_dir'], 'sequences.json'), 'w') as f:
+        json.dump(output_data, f, default=str)
+
+    fig1 = visualization.plot_distribution_proportions(output_data['sequences'], data['parameters']['smoothing'])
+    distrJSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
+
+    with open(os.path.join(data['parameters']['new_dir'], 'distribution.png'), "wb") as distribution_file:
+        fig1.write_image(distribution_file)
+
+    return {'session_id': Path(data['parameters']['new_dir']).name,
+            'email': data['parameters']['email']}
 
 @app.route('/results')
 def results():
@@ -202,37 +268,67 @@ def results():
                                        fastq_parameters=fastq_parameters,
                                        page='results')
         else:
-            output_data = sequence_distribution.main(data['parameters']['new_dir'])
-            with open(os.path.join(data['parameters']['new_dir'],'sequences.json'), 'w') as f:
-                json.dump(output_data, f, default=str)
-
-            fig1 = visualization.plot_distribution_proportions(output_data['sequences'], data['parameters']['smoothing'])
-            distrJSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
-
-            with open(os.path.join(data['parameters']['new_dir'],'distribution.png'), "wb") as distribution_file:
-                fig1.write_image(distribution_file)
-
-            plots = {'hist1': distrJSON}
-            sequences = [{'type': seq['type'],
-                          'sequence': seq['sequence'],
-                          'peaks': seq['peaks'] if 'peaks' in seq else [],
-                          'noise_level': seq['noise_level'] if 'noise_level' in seq else 0,
-                          'total_reads': seq['total_reads'] if 'total_reads' in seq else 0,
-                          'total_proportion': seq['total_proportion'] if 'total_proportion' in seq else 0,
-                          'value_counts': seq['value_counts'] if 'value_counts' in seq else []
-                          } for seq in output_data['sequences']]
-            fastq_parameters = {'n_records': output_data['parameters']['n_records'],
-                                'avg_noise_level': output_data['parameters']['avg_noise_level'] \
-                                    if 'avg_noise_level' in output_data['parameters'] else None
-                                }
-            return render_template('results.html',
-                                   plots=plots,
-                                   data=data,
-                                   sequences=sequences,
-                                   fastq_parameters=fastq_parameters,
+            result = data_processing.delay(data)
+            return render_template('async_result.html',
+                                   result_id=result.id,
+                                   parameters = data['parameters'],
                                    page='results')
     else:
         return render_template('no_results.html', page='results')
+
+def send_email(email, sessionID, path):
+    recipient = email
+    subject = f'NanoporeInspect: session {sessionID} results are ready'
+    message_body = f'The results are available in the web application by the link: {path}'
+    msg = Message(
+        subject=subject,
+        sender=app.config['MAIL_USERNAME'],
+        recipients=[recipient]
+    )
+    msg.body = message_body  # Plain text email body
+
+    try:
+        mail.send(msg)
+        return f"Email sent to {recipient}!"
+    except Exception as e:
+        return f"Failed to send email. Error: {str(e)}"
+
+@app.route('/send_email')
+def send_email_test():
+    recipient = 'magsend@gmail.com'
+    subject = 'TEST from NanoporeInspect'
+    message_body = 'Test from NanoporeInspect'
+
+    msg = Message(
+        subject=subject,
+        sender=app.config['MAIL_USERNAME'],
+        recipients=[recipient]
+    )
+    msg.body = message_body  # Plain text email body
+
+    try:
+        mail.send(msg)
+        return f"Email sent to {recipient}!"
+    except Exception as e:
+        return f"Failed to send email. Error: {str(e)}"
+
+@app.route("/result/<id>", methods=['GET','POST'])
+def task_result(id: str) -> dict[str, object]:
+    result = AsyncResult(id)
+    if result.ready():
+        session_id = result.result['session_id']
+        email = result.result['email']
+        path = request.url_root + 'experiment/' + session_id
+        send_email(email, session_id, path)
+        return redirect(url_for('experiment', sessionID=session_id))
+    else:
+        return render_template('in_progress.html', result_id = id, page='results')
+
+    # return {
+    #     "ready": result.ready(),
+    #     "successful": result.successful(),
+    #     "value": result.result if result.ready() else None,
+    # }
 
 if __name__ == '__main__':
     app.run(debug=True)

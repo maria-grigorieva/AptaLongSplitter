@@ -19,7 +19,7 @@
     <li class="list-group-item">
         <div class="form-group">
                 <label for="session_name">Session Name</label>
-                {{ form.session_name(class="form-control-file") }}
+                {{ form.session_name(class="form-control-file", data_bs_toggle="tooltip", data_bs_placement="top", title="Session name can contain only latin letters, numbers and _") }}
             </div>
     </li>
     <li class="list-group-item"><h5>Sequences to search:</h5></li>
@@ -28,7 +28,7 @@
                         {% for nested in form.items %}
                 <table id="items">
                     <tr>
-                        <th>Type</th>
+                        <th>Sequence Name</th>
                         <th>Sequence</th>
                     </tr>
                     <tr id="items-0">
@@ -43,19 +43,26 @@
   <li class="list-group-item">
       <div class="form-group">
                 <label for="limit">Limit</label>
-                {{ form.limit(size=10, class="form-control") }}
+{#                {{ form.limit(size=10, class="form-control") }}#}
+                {{ form.limit(size=10, class="form-control", data_bs_toggle="tooltip", data_bs_placement="top", title="Enter a limit for the data sample (max. number of lines to process)") }}
             </div>
   </li>
   <li class="list-group-item">
       <div class="form-group">
                 <label for="threshold">Threshold</label>
-                {{ form.threshold(size=10, class="form-control") }}
+                {{ form.threshold(size=10, class="form-control", data_bs_toggle="tooltip", data_bs_placement="top", title="Enter a threshold for the string similarity level [0,1]") }}
       </div>
   </li>
   <li class="list-group-item">
       <div class="form-group">
                 <label for="smoothing">Smoothing</label>
                 {{ form.smoothing(class="form-control-file") }}
+            </div>
+  </li>
+  <li class="list-group-item">
+      <div class="form-group">
+                <label for="email">Email</label>
+                {{ form.email(size=50, class="form-control") }}
             </div>
   </li>
   <li class="list-group-item">
@@ -86,6 +93,7 @@
         `;
         document.getElementById('items').appendChild(newItem);
     });
+
 </script>
 
 <!--</div>-->
